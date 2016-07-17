@@ -5,7 +5,6 @@ import uuid
 import datetime
 
 from peewee import *
-from playhouse.fields import PasswordField
 
 from .db import DB_OBJ
 
@@ -19,11 +18,9 @@ class ToyboxModel(Model):
         database = DB_OBJ
 
 class User(ToyboxModel):
-    user_name       = CharField(unique=True)
-    # TODO: replace, probably won't work in lambda
-    password        = PasswordField()
+    username        = CharField(unique=True)
+    password        = CharField()
     email_addr      = CharField(unique=True)
-    email_verified  = BooleanField(default=False)
 
 class World(ToyboxModel):
     user            = ForeignKeyField(User, 'worlds')
