@@ -7,9 +7,12 @@ import datetime
 
 from peewee import *
 from playhouse.fields import PasswordField
-from playhouse.db_url import connect
+from playhouse.db_url import parse
 
-DB_OBJ = Proxy()
+if os.environ.get('TOYBOX_TESTING'):
+    DB_OBJ = SqliteDatabase(None)
+else:
+    DB_OBJ = PostgresqlDatabase(None)
 
 class ToyboxModel(Model):
     guid            = UUIDField(index=True, default=uuid.uuid4)
@@ -34,7 +37,8 @@ class World(ToyboxModel):
     api_key         = UUIDField(index=True, default=uuid.uuid4)
     map_token       = CharField(index=True, default=uuid.uuid4)
 
-def db_init_proxy(db_uri):
-    db_actual = connect(db_uri)
-    DB_OBJ.initialize(db_actual)
-    return db_actual
+def db_config(db_uri):
+    cfg = parse(db_uri)
+    db_name = cfg['database']
+    del cfg['database']
+    return db_name, cfg
