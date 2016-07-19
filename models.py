@@ -7,6 +7,7 @@ import datetime
 from peewee import *
 
 from .db import DB_OBJ
+from .xattr import ExtendedAttributeProxy
 
 class ToyboxModel(Model):
     guid            = UUIDField(index=True, default=uuid.uuid4)
@@ -16,6 +17,28 @@ class ToyboxModel(Model):
 
     class Meta:
         database = DB_OBJ
+
+    class MetaXattr:
+        cache = None
+        nosql_database = None
+
+    @classmethod
+    def init_xattr(cls, cache, nosql_db):
+        cls.MetaXattr.cache = cache
+        cls.MetaXattr.nosql_database = nosql_db
+
+    def __init__(self, *args, **kwargs):
+        super(ToyboxModel, self).__init__(*args, **kwargs)
+        self.__xattr_proxy = ExtendedAttributeProxy(self,
+            self.__class__.MetaXattr.cache,
+            self.__class__.MetaXattr.nosql_database,
+        )
+
+    @property
+    def xattr(self):
+        return self.__xattr_proxy
+
+
 
 class User(ToyboxModel):
     username        = CharField(unique=True)
