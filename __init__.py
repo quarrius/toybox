@@ -3,3 +3,4 @@
 
 from .models import User, World
 from .db import DB_INIT
+from .config import CFG_INIT
