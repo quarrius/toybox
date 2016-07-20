@@ -5,6 +5,8 @@ import collections
 import json
 import logging
 
+logger = logging.getLogger(__name__)
+
 class XattrDictMixin(collections.MutableMapping):
     def __getitem__(self, key):
         if self._is_mkey(key):
@@ -40,28 +42,15 @@ class XattrDictMixin(collections.MutableMapping):
 class XattrProxyMixin(object):
     KEY_PATH_SEP            = ':'
     DEFAULT_CACHE_LENGTH    = 1 * 3600
-    DEFAULT_ID_FIELD        = 'guid'
 
     def __init__(self, parent, cache_backend, db_backend,
-            id_field=DEFAULT_ID_FIELD, cache_time=DEFAULT_CACHE_LENGTH):
-        self._id_field = id_field
+            cache_time=DEFAULT_CACHE_LENGTH):
         self._cache_ttl = cache_time
-        self._parent_obj_guid = str(getattr(parent, self._id_field))
-        self._key_prefix = self._get_key_prefix(parent)
 
+        self._parent = parent
         self._cache = cache_backend
         self._db = db_backend
         self._local_cache = {}
-        self._log = logging.getLogger('{}:{}:{}'.format(
-            __name__, parent._name_token, self._parent_obj_guid))
-
-    def _get_key_prefix(self, parent):
-        return (self.KEY_PATH_SEP.join([
-            'data',
-            parent._name_token,
-            self._parent_obj_guid,
-            'xattr',
-        ]) + self.KEY_PATH_SEP).encode('utf-8')
 
     def _get_key(self, key):
         raise NotImplementedError()
@@ -94,6 +83,19 @@ class XattrProxy_Testing(XattrProxyMixin, XattrDictMixin):
         del self._local_cache[key]
 
 class XattrProxy_Redis_DynamoDB(XattrProxyMixin, XattrDictMixin):
+    @property
+    def _key_prefix(self):
+        return (self.KEY_PATH_SEP.join([
+            'data',
+            self._parent._name_token,
+            self._parent.guid,
+            'xattr',
+        ]) + self.KEY_PATH_SEP).encode('utf-8')
+
+    @property
+    def guid(self):
+        return self._parent.guid
+
     def _get_key(self, key):
         cache_key = self._key_prefix + key
         try:
@@ -108,11 +110,11 @@ class XattrProxy_Redis_DynamoDB(XattrProxyMixin, XattrDictMixin):
                 # If we have to go all the way back to dynamodb, might as well
                 # grab all the attributes at once and cache them
                 resp = self._db.get_item(
-                    Key={self._id_field: self._parent_obj_guid},
+                    Key={'guid': self.guid},
                 )
                 try:
                     item = resp['Item']
-                    del item[self._id_field]
+                    del item['guid']
                 except KeyError as db_err:
                     raise local_err
                 value = item[key]
@@ -149,11 +151,11 @@ class XattrProxy_Redis_DynamoDB(XattrProxyMixin, XattrDictMixin):
         # If we have to go all the way back to dynamodb, might as well
         # grab all the attributes at once and cache them
         resp = self._db.get_item(
-            Key={self._id_field: self._parent_obj_guid},
+            Key={'guid': self.guid},
         )
         try:
             values = resp['Item']
-            del values[self._id_field]
+            del values['guid']
         except KeyError as db_err:
             # no values set at all for this obj id
             return {}
@@ -174,7 +176,7 @@ class XattrProxy_Redis_DynamoDB(XattrProxyMixin, XattrDictMixin):
     def _set_mkey(self, keys, values):
         items = dict(zip(keys, values))
         result = self._db.update_item(
-            Key={self._id_field: self._parent_obj_guid},
+            Key={'guid': self.guid},
             UpdateExpression='SET ' + ', '.join(
                 '{} = :value{}'.format(k, i) \
                     for i, k in enumerate(keys)
@@ -199,7 +201,7 @@ class XattrProxy_Redis_DynamoDB(XattrProxyMixin, XattrDictMixin):
 
     def _del_mkey(self, keys):
         result = self._db.update_item(
-            Key={self._id_field: self._parent_obj_guid},
+            Key={'guid': self.guid},
             UpdateExpression='REMOVE ' + ', '.join(
                 '{}'.format(k) \
                     for k in keys
