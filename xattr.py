@@ -175,8 +175,8 @@ class XattrProxy_Redis_DynamoDB(XattrProxyMixin, XattrDictMixin):
         items = dict(zip(keys, values))
         result = self._db.update_item(
             Key={self._id_field: self._parent_obj_guid},
-            UpdateExpression=', '.join(
-                'SET {} = :value{}'.format(k, i) \
+            UpdateExpression='SET ' + ', '.join(
+                '{} = :value{}'.format(k, i) \
                     for i, k in enumerate(keys)
             ),
             ExpressionAttributeValues={
@@ -200,8 +200,8 @@ class XattrProxy_Redis_DynamoDB(XattrProxyMixin, XattrDictMixin):
     def _del_mkey(self, keys):
         result = self._db.update_item(
             Key={self._id_field: self._parent_obj_guid},
-            UpdateExpression=', '.join(
-                'REMOVE {}'.format(k) \
+            UpdateExpression='REMOVE ' + ', '.join(
+                '{}'.format(k) \
                     for k in keys
             ),
         )
