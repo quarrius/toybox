@@ -88,7 +88,7 @@ class XattrProxy_Redis_DynamoDB(XattrProxyMixin, XattrDictMixin):
         return (self.KEY_PATH_SEP.join([
             'data',
             self._parent._name_token,
-            self._parent.guid,
+            str(self._parent.guid),
             'xattr',
         ]) + self.KEY_PATH_SEP).encode('utf-8')
 
