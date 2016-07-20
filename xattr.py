@@ -46,7 +46,7 @@ class XattrProxyMixin(object):
             id_field=DEFAULT_ID_FIELD, cache_time=DEFAULT_CACHE_LENGTH):
         self._id_field = id_field
         self._cache_ttl = cache_time
-        self._parent_obj_guid = getattr(parent, self._id_field)
+        self._parent_obj_guid = str(getattr(parent, self._id_field))
         self._key_prefix = self._get_key_prefix(parent)
 
         self._cache = cache_backend
