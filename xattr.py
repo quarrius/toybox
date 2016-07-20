@@ -36,6 +36,9 @@ class XattrDictMixin(collections.MutableMapping):
     def update(self, other):
         return self._set_mkey(other.keys(), other.values())
 
+    def clear(self):
+        return self._del_mkey(self._local_cache.keys())
+
     def _is_mkey(self, key):
         return isinstance(key, (tuple, list))
 
