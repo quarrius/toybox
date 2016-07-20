@@ -88,13 +88,13 @@ class XattrProxy_Redis_DynamoDB(XattrProxyMixin, XattrDictMixin):
         return (self.KEY_PATH_SEP.join([
             'data',
             self._parent._name_token,
-            str(self._parent.guid),
+            self.guid,
             'xattr',
         ]) + self.KEY_PATH_SEP).encode('utf-8')
 
     @property
     def guid(self):
-        return self._parent.guid
+        return str(self._parent.guid)
 
     def _get_key(self, key):
         cache_key = self._key_prefix + key
