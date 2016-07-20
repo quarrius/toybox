@@ -5,9 +5,17 @@ import uuid
 import datetime
 
 from peewee import *
+from playhouse.db_url import connect as db_connect
+import boto3
 
-from .db import DB_OBJ
-from .xattr import ExtendedAttributeProxy
+from .config import CFG
+from .db import DATABASE
+from .cache import CACHE
+from .xattr import XattrProxy_Redis_DynamoDB
+
+dynamodb = boto3.resource('dynamodb')
+
+DYNAMODB_TABLE_PREFIX   = 'quarrius-'
 
 class ToyboxModel(Model):
     guid            = UUIDField(index=True, default=uuid.uuid4)
@@ -16,20 +24,18 @@ class ToyboxModel(Model):
     active          = BooleanField(default=True)
 
     class Meta:
-        database = DB_OBJ
+        database = DATABASE
 
     class MetaXattr:
-        cache = None
+        cache = CACHE
         nosql_database = None
-
-    @classmethod
-    def init_xattr(cls, cache, nosql_db):
-        cls.MetaXattr.cache = cache
-        cls.MetaXattr.nosql_database = nosql_db
 
     def __init__(self, *args, **kwargs):
         super(ToyboxModel, self).__init__(*args, **kwargs)
-        self.__xattr_proxy = ExtendedAttributeProxy(self,
+        if self.__class__.MetaXattr.nosql_database is None:
+            self.__class__.MetaXattr.nosql_database = \
+                dynamodb.Table(DYNAMODB_TABLE_PREFIX + self._name_token)
+        self.__xattr_proxy = XattrProxy_Redis_DynamoDB(self,
             self.__class__.MetaXattr.cache,
             self.__class__.MetaXattr.nosql_database,
         )
@@ -38,6 +44,9 @@ class ToyboxModel(Model):
     def xattr(self):
         return self.__xattr_proxy
 
+    @property
+    def _name_token(self):
+        return self.__class__.__name__.lower()
 
 
 class User(ToyboxModel):
@@ -51,3 +60,8 @@ class World(ToyboxModel):
     name            = CharField()
     api_key         = UUIDField(index=True, default=uuid.uuid4)
     map_token       = CharField(index=True, default=uuid.uuid4)
+
+class Dimension(ToyboxModel):
+    world           = ForeignKeyField(World, 'dimensions')
+
+    name            = CharField()

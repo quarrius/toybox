@@ -10,27 +10,28 @@ import redis
 
 
 CONFIG_DOMAIN = 'config.quarri.local'
-CONFIG_DEFAULT_PORT = 6379
 
 logger = logging.getLogger(__name__)
 
-def CFG_INIT(config_domain=CONFIG_DOMAIN):
-    config_service = ('localhost', CONFIG_DEFAULT_PORT)
+def CFG_INIT():
     try:
         answers = dns.resolver.query(CONFIG_DOMAIN, 'SRV')
-        config_service = random.choice([(a.target.to_text(), a.port) for a in answers])
-    except (IndexError, dns.resolver.NXDOMAIN) as err:
+        config_host, config_port = random.choice([(a.target.to_text(), a.port) \
+            for a in answers])
+    except (IndexError, dns.resolver.NXDOMAIN) as resolver_err:
         # no domain found, probably running locally?
-        logger.warn('Failed to retrieve config SRV record: %s', err)
-        logger.exception(err)
+        logger.warn('Failed to retrieve config SRV record from <%s>: %s',
+            CONFIG_DOMAIN, err)
 
-        env_config_service = os.environ.get('QUARRIUS_CONFIG_SERVICE', None)
-        if env_config_service is not None:
-            logger.debug('Loading config service from env var: %s', env_config_service)
-            config_service = env_config_service.split(':', 1)
-            # convert the port number to an int
-            config_service[1] = int(config_service[1])
+        config_endpoint = os.environ.get('TOYBOX_CONFIG', None)
+        if config_endpoint is None:
+            logger.error('ENV[TOYBOX_CONFIG] not set, no config endpoint available')
+            raise ValueError('No config endpoint available')
 
-    config_host, config_port = config_service
-    logger.debug('Using config service: %s:%d', config_host, config_port)
+        config_host, config_port = config_endpoint.split(':', 1)
+        config_port = int(config_port)
+
+    logger.debug('Using config endpoint: %s:%d', config_host, config_port)
     return redis.StrictRedis(host=config_host, port=config_port)
+
+CFG = CFG_INIT()

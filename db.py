@@ -4,17 +4,13 @@
 import os
 
 from peewee import SqliteDatabase, PostgresqlDatabase
-from playhouse.db_url import parse
+from playhouse.db_url import connect
 
-if os.environ.get('TOYBOX_TESTING'):
-    DB_OBJ = SqliteDatabase(None)
-else:
-    DB_OBJ = PostgresqlDatabase(None)
+from .config import CFG
 
-def DB_INIT(db_uri):
-    db_cfg = parse(db_uri)
-    db_name = db_cfg['database']
-    del db_cfg['database']
+def DB_INIT(db_uri=None):
+    if db_uri is None:
+        db_uri = CFG.get('config:toybox:DATABASE_URI')
+    return connect(db_uri)
 
-    DB_OBJ.init(db_name, **db_cfg)
-    return DB_OBJ
+DATABASE = DATABASE_INIT()
