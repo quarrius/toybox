@@ -8,7 +8,7 @@ from playhouse.db_url import connect
 
 from .config import CFG
 
-def DB_INIT(db_uri=None):
+def DATABASE_INIT(db_uri=None):
     if db_uri is None:
         db_uri = CFG.get('config:toybox:DATABASE_URI')
     return connect(db_uri)
