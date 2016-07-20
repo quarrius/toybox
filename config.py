@@ -21,7 +21,7 @@ def CFG_INIT():
     except (IndexError, dns.resolver.NXDOMAIN) as resolver_err:
         # no domain found, probably running locally?
         logger.warn('Failed to retrieve config SRV record from <%s>: %s',
-            CONFIG_DOMAIN, err)
+            CONFIG_DOMAIN, resolver_err)
 
         config_endpoint = os.environ.get('TOYBOX_CONFIG', None)
         if config_endpoint is None:
