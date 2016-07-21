@@ -13,6 +13,7 @@ def CACHE_INIT(cache_endpoint=None):
     if cache_endpoint is None:
         cache_host, cache_port = CFG.mget([
             'config:toybox:CACHE_HOST', 'config:toybox:CACHE_PORT'])
+        cache_port = int(cache_port)
     else:
         cache_host, cache_port = cache_endpoint.split(':', 1)
         cache_port = int(cache_port)
