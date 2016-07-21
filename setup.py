@@ -45,6 +45,8 @@ setup_args = {
         'dnspython',
         'redis',
     ],
+
+    'packages':         find_packages(),
 }
 
 if __name__ == '__main__':
