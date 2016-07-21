@@ -38,6 +38,13 @@ setup_args = {
         # 'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
     ],
+
+    'install_requires': [
+        'peewee',
+        'psycopg2',
+        'dnspython',
+        'redis',
+    ],
 }
 
 if __name__ == '__main__':
