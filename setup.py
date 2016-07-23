@@ -44,6 +44,7 @@ setup_args = {
         'psycopg2',
         'dnspython',
         'redis',
+        'PyYAML',
     ],
 
     'packages':         find_packages(),

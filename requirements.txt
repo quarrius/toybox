@@ -2,3 +2,4 @@ peewee==2.8.1
 psycopg2==2.6.2
 dnspython==1.14.0
 redis==2.10.5
+PyYAML==3.11

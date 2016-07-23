@@ -1,0 +1,12 @@
+---
+
+config:
+  toybox:
+    DATABASE_URI: "sqlite:///:memory:"
+    CACHE_HOST: localhost
+    CACHE_PORT: 6379
+
+  quarry-web:
+    SECRET_KEY: "CHANGE ME"
+    GITHUB_CLIENT_ID: "CHANGE ME"
+    GITHUB_CLIENT_SECRET: "CHANGE ME"
