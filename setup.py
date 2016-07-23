@@ -13,7 +13,7 @@ with open(os.path.join(REPO_DIR, 'README.md'), encoding='utf-8') as readme_fd:
 
 setup_args = {
     'name':             'toybox',
-    'version':          '0.1.0',
+    'version':          '0.2.0',
     'description':      'Database models for quarry',
     'long_description': long_description,
 
