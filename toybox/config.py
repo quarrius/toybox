@@ -30,6 +30,9 @@ class ConfigFileWrapper(object):
                 return None
         return v
 
+    def mget(self, keys):
+        return [self.get(key) for key in keys]
+
 def CFG_INIT():
     try:
         answers = dns.resolver.query(CONFIG_DOMAIN, 'SRV')
