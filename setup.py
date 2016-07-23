@@ -47,7 +47,7 @@ setup_args = {
         'PyYAML',
     ],
 
-    'packages':         find_packages(),
+    'packages':         find_packages(exclude=['tests']),
 }
 
 if __name__ == '__main__':
